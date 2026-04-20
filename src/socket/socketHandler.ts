@@ -20,12 +20,19 @@ export function initializeSocketServer(httpServer: HTTPServer): Server {
   };
 
   io = new Server(httpServer, socketOptions);
+  console.log('Socket.io server initialized with CORS origin:', config.cors_origin);
 
   // Register authentication middleware
   io.use(socketAuthMiddleware);
 
   // Setup all event handlers
-  setupEventHandlers(io);
+  try {
+    setupEventHandlers(io);
+    console.log('Socket.io event handlers registered');
+  } catch (error) {
+    console.error('Failed to setup Socket.io event handlers:', error);
+    throw error;
+  }
 
   return io;
 }
@@ -38,4 +45,20 @@ export function getSocketServer(): Server {
     throw new Error('Socket.io server not initialized. Call initializeSocketServer first.');
   }
   return io;
+}
+
+/**
+ * Gracefully close Socket.io server and clean up connections
+ */
+export function closeSocketServer(): Promise<void> {
+  return new Promise((resolve) => {
+    if (io) {
+      console.log('Closing Socket.io server...');
+      io.close();
+      io = null;
+      resolve();
+    } else {
+      resolve();
+    }
+  });
 }
