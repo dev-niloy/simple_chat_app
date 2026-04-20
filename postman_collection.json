@@ -1,0 +1,437 @@
+{
+  "info": {
+    "name": "Simple Chat App - Express Backend",
+    "description": "Complete API and Socket.io event collection for the Simple Chat App backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"SecurePassword123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Register a new user account"
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"SecurePassword123\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login and get access/refresh tokens"
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/auth/refresh-token",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "auth", "refresh-token"]
+            },
+            "description": "Get new access token using refresh token"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/users",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "users"]
+            },
+            "description": "Get all registered users"
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/users/{{userId}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "users", "{{userId}}"]
+            },
+            "description": "Get a specific user by ID"
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Name\",\n  \"email\": \"newemail@example.com\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/users/{{userId}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "users", "{{userId}}"]
+            },
+            "description": "Update user information"
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5000/api/users/{{userId}}",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "users", "{{userId}}"]
+            },
+            "description": "Delete a user (soft delete)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Socket.io Events",
+      "item": [
+        {
+          "name": "Connection Setup",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "// JavaScript Connection Code\nconst socket = io('http://localhost:5000', {\n  query: { token: 'YOUR_ACCESS_TOKEN' },\n  transports: ['websocket', 'polling']\n});\n\nsocket.on('connect', () => {\n  console.log('Connected to server');\n});\n\nsocket.on('auth_error', (error) => {\n  console.error('Authentication failed:', error);\n});"
+            },
+            "url": {
+              "raw": "http://localhost:5000/socket.io/?transport=websocket",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["socket.io"],
+              "query": [
+                {
+                  "key": "transport",
+                  "value": "websocket"
+                }
+              ]
+            },
+            "description": "Connect to Socket.io server with JWT authentication"
+          }
+        },
+        {
+          "name": "User Status - Get Online Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "// Emit event\nsocket.emit('get_online_users');\n\n// Listen for response\nsocket.on('online_users_list', (data) => {\n  console.log('Online users:', data.users);\n  // { users: [\"user-id-1\", \"user-id-2\"], timestamp: 1713607200000 }\n});"
+            },
+            "url": {
+              "raw": "http://localhost:5000",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000"
+            },
+            "description": "Request list of all online users"
+          }
+        },
+        {
+          "name": "User Status - Listen Online",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "// Listen for user coming online\nsocket.on('user_online', (data) => {\n  console.log(`${data.userId} is now online`);\n  // { userId: \"user-id\", timestamp: 1713607200000 }\n});"
+            },
+            "url": {
+              "raw": "http://localhost:5000",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000"
+            },
+            "description": "Listen for when a user comes online"
+          }
+        },
+        {
+          "name": "User Status - Listen Offline",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "// Listen for user going offline\nsocket.on('user_offline', (data) => {\n  console.log(`${data.userId} went offline`);\n  // { userId: \"user-id\", timestamp: 1713607200000 }\n});"
+            },
+            "url": {
+              "raw": "http://localhost:5000",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000"
+            },
+            "description": "Listen for when a user goes offline"
+          }
+        },
+        {
+          "name": "Messaging - Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "// Send a message\nsocket.emit(\n  'send_message',\n  {\n    recipientId: 'recipient-user-id',\n    text: 'Hello! How are you?',\n    timestamp: Date.now()\n  },\n  (response) => {\n    if (response.status === 'sent') {\n      console.log('Message sent with ID:', response.messageId);\n    } else {\n      console.error('Failed to send:', response.message);\n    }\n  }\n);"
+            },
+            "url": {
+              "raw": "http://localhost:5000",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000"
+            },
+            "description": "Send a message to another user"
+          }
+        },
+        {
+          "name": "Messaging - Receive Message",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "// Listen for incoming messages\nsocket.on('receive_message', (data) => {\n  console.log(`Message from ${data.senderId}: ${data.text}`);\n  // { messageId, senderId, text, timestamp }\n  \n  // Auto-send read receipt\n  socket.emit('message_read', {\n    messageId: data.messageId,\n    senderId: data.senderId\n  });\n});"
+            },
+            "url": {
+              "raw": "http://localhost:5000",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000"
+            },
+            "description": "Listen for incoming messages from other users"
+          }
+        },
+        {
+          "name": "Read Receipts - Send Receipt",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "// Send read receipt\nsocket.emit('message_read', {\n  messageId: 'message-uuid',\n  senderId: 'sender-user-id'\n});"
+            },
+            "url": {
+              "raw": "http://localhost:5000",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000"
+            },
+            "description": "Send confirmation that message was read"
+          }
+        },
+        {
+          "name": "Read Receipts - Listen Receipt",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "// Listen for read receipts on your messages\nsocket.on('read_receipt', (data) => {\n  console.log(`Message ${data.messageId} read by ${data.readBy}`);\n  // { messageId, readBy, readAt: timestamp }\n});"
+            },
+            "url": {
+              "raw": "http://localhost:5000",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000"
+            },
+            "description": "Listen for read receipts on sent messages"
+          }
+        },
+        {
+          "name": "Typing Indicator - User Typing",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "// Emit when user starts typing\nsocket.emit('user_typing', {\n  recipientId: 'recipient-user-id'\n});\n\n// Emit when user stops typing (on blur or after delay)\nsocket.emit('user_stopped_typing', {\n  recipientId: 'recipient-user-id'\n});"
+            },
+            "url": {
+              "raw": "http://localhost:5000",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000"
+            },
+            "description": "Send typing indicator to another user"
+          }
+        },
+        {
+          "name": "Typing Indicator - Listen Typing",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "// Listen for typing indicator\nsocket.on('recipient_typing', (data) => {\n  console.log(`${data.senderId} is typing...`);\n  // { senderId }\n});\n\n// Listen for stopped typing\nsocket.on('recipient_stopped_typing', (data) => {\n  console.log(`${data.senderId} stopped typing`);\n  // { senderId }\n});"
+            },
+            "url": {
+              "raw": "http://localhost:5000",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000"
+            },
+            "description": "Listen for typing indicators from other users"
+          }
+        },
+        {
+          "name": "Error Handling",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "// Listen for message errors\nsocket.on('message_error', (error) => {\n  console.error('Message error:', error);\n  // Recipient offline, message too long, etc.\n});\n\n// Listen for general socket errors\nsocket.on('error', (error) => {\n  console.error('Socket error:', error);\n});\n\n// Listen for authentication errors\nsocket.on('auth_error', (error) => {\n  console.error('Authentication error:', error);\n  // Invalid token, expired token, etc.\n});\n\n// Listen for disconnection\nsocket.on('disconnect', () => {\n  console.log('Disconnected from server');\n});\n\n// Listen for connection errors\nsocket.on('connect_error', (error) => {\n  console.error('Connection error:', error);\n});"
+            },
+            "url": {
+              "raw": "http://localhost:5000",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000"
+            },
+            "description": "Handle various Socket.io errors and events"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Example Workflows",
+      "item": [
+        {
+          "name": "Complete Chat Flow",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "// STEP 1: Register User A\nconst registerUserA = async () => {\n  const response = await fetch('http://localhost:5000/api/auth/register', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({\n      name: 'Alice',\n      email: 'alice@example.com',\n      password: 'SecurePass123'\n    })\n  });\n  return await response.json();\n};\n\n// STEP 2: Register User B\nconst registerUserB = async () => {\n  const response = await fetch('http://localhost:5000/api/auth/register', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({\n      name: 'Bob',\n      email: 'bob@example.com',\n      password: 'SecurePass123'\n    })\n  });\n  return await response.json();\n};\n\n// STEP 3: Login both users\nconst loginUser = async (email, password) => {\n  const response = await fetch('http://localhost:5000/api/auth/login', {\n    method: 'POST',\n    headers: { 'Content-Type': 'application/json' },\n    body: JSON.stringify({ email, password })\n  });\n  return await response.json();\n};\n\n// STEP 4: Connect both users via Socket.io\nconst socketA = io('http://localhost:5000', {\n  query: { token: accessTokenA },\n  transports: ['websocket', 'polling']\n});\n\nconst socketB = io('http://localhost:5000', {\n  query: { token: accessTokenB },\n  transports: ['websocket', 'polling']\n});\n\n// STEP 5: User A starts typing\nsocketA.emit('user_typing', { recipientId: userBId });\n\n// STEP 6: User B receives typing indicator\nsocketB.on('recipient_typing', (data) => {\n  console.log('Alice is typing...');\n});\n\n// STEP 7: User A sends message\nsocketA.emit(\n  'send_message',\n  {\n    recipientId: userBId,\n    text: 'Hi Bob! How are you?',\n    timestamp: Date.now()\n  },\n  (response) => {\n    console.log('Message sent:', response.messageId);\n  }\n);\n\n// STEP 8: User B receives message\nsocketB.on('receive_message', (data) => {\n  console.log('Received:', data.text);\n  \n  // Auto-send read receipt\n  socketB.emit('message_read', {\n    messageId: data.messageId,\n    senderId: data.senderId\n  });\n});\n\n// STEP 9: User A receives read receipt\nsocketA.on('read_receipt', (data) => {\n  console.log('Message read at:', new Date(data.readAt));\n});"
+            },
+            "url": {
+              "raw": "http://localhost:5000",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000"
+            },
+            "description": "Complete workflow showing registration, login, connection, and message exchange"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string",
+      "description": "JWT Access Token from login response"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string",
+      "description": "JWT Refresh Token from login response"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string",
+      "description": "User ID from login/register response"
+    }
+  ]
+}
