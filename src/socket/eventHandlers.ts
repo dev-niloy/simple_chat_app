@@ -62,6 +62,14 @@ export function setupEventHandlers(io: Server): void {
             return;
           }
 
+          const MAX_MESSAGE_LENGTH = 4096;
+          if (text.length > MAX_MESSAGE_LENGTH) {
+            const error = `Message exceeds maximum length of ${MAX_MESSAGE_LENGTH} characters`;
+            socket.emit(SOCKET_EVENTS.MESSAGE_ERROR, error);
+            callback?.({ status: 'error', message: error });
+            return;
+          }
+
           // Check if recipient is online
           const recipientSocketId = roomManager.isUserOnline(recipientId);
           if (!recipientSocketId) {
@@ -81,12 +89,20 @@ export function setupEventHandlers(io: Server): void {
           socket.join(roomName);
           io.to(recipientSocketId).socketsJoin(roomName);
 
+          // Validate and sanitize timestamp
+          const now = Date.now();
+          const maxSkew = 60000; // 1 minute
+          const sanitizedTimestamp =
+            timestamp && typeof timestamp === 'number' && Math.abs(timestamp - now) < maxSkew
+              ? timestamp
+              : now;
+
           // Send message to recipient
           io.to(roomName).emit(SOCKET_EVENTS.RECEIVE_MESSAGE, {
             messageId,
             senderId: userId,
             text,
-            timestamp: timestamp || Date.now(),
+            timestamp: sanitizedTimestamp,
           });
 
           // Acknowledge to sender
@@ -108,21 +124,24 @@ export function setupEventHandlers(io: Server): void {
 
     socket.on(
       SOCKET_EVENTS.MESSAGE_READ,
-      (payload: { messageId: string }) => {
+      (payload: { messageId: string; senderId: string }) => {
         try {
-          const { messageId } = payload;
+          const { messageId, senderId } = payload;
 
-          if (!messageId) {
-            socket.emit(SOCKET_EVENTS.ERROR, 'messageId is required');
+          if (!messageId || !senderId) {
+            socket.emit(SOCKET_EVENTS.ERROR, 'messageId and senderId are required');
             return;
           }
 
-          // Broadcast read receipt to all users in all rooms this user is in
-          socket.broadcast.emit(SOCKET_EVENTS.READ_RECEIPT, {
-            messageId,
-            readBy: userId,
-            readAt: Date.now(),
-          });
+          // Only send read receipt to the message sender
+          const senderSocketId = roomManager.isUserOnline(senderId);
+          if (senderSocketId) {
+            io.to(senderSocketId).emit(SOCKET_EVENTS.READ_RECEIPT, {
+              messageId,
+              readBy: userId,
+              readAt: Date.now(),
+            });
+          }
         } catch (error) {
           const message =
             error instanceof Error ? error.message : 'Failed to send read receipt';
