@@ -26,11 +26,14 @@ export function socketAuthMiddleware(
 
     // Verify JWT
     const decoded = jwt.verify(token, config.jwt.access_secret) as {
+      id?: string;
       sub?: string;
       userId?: string;
+      email?: string;
+      role?: string;
     };
 
-    const userId = decoded.sub || decoded.userId;
+    const userId = decoded.id || decoded.sub || decoded.userId;
     if (!userId) {
       return next(new Error('Authentication error: Invalid token payload'));
     }
